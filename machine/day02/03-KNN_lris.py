@@ -2,8 +2,8 @@ from sklearn.datasets import load_iris
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split,GridSearchCV
+from sklearn.preprocessing import StandardScaler,MinMaxScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 
@@ -35,7 +35,11 @@ print(f'x_train: {len(x_train)}')
 print(f'x_test: {len(x_test)}')
 print(f'iris_data.data: {len(iris_data.data)}')
 
-# 数据预处理，标准化
+# 数据预处理，
+# 归一化
+# scaler = MinMaxScaler(feature_range=(0,1))
+
+# 标准化
 scaler = StandardScaler()
 x_train = scaler.fit_transform(x_train)
 x_test = scaler.transform(x_test)
@@ -53,3 +57,17 @@ print(f'acc: {acc}')
 y_pred = model.predict(x_test)
 acc = accuracy_score(y_test,y_pred)
 print(f'acc: {acc}')
+
+
+
+# 3. 初始化KNN模型（初始n_neighbors=1仅为占位，网格搜索会覆盖）
+model = KNeighborsClassifier(n_neighbors=1)
+# 4. 定义网格搜索：调优n_neighbors，4折交叉验证
+estimator = GridSearchCV(estimator=model,param_grid={'n_neighbors': [4, 5, 7, 9]},cv=4)
+# 5. 执行网格搜索（训练所有K值并做交叉验证）
+estimator.fit(x_train, y_train)
+
+# 6. 输出核心结果
+print("交叉验证的最优平均得分：", estimator.best_score_)
+print("最优参数对应的模型：", estimator.best_estimator_)
+print("所有参数组合的详细交叉验证结果：\n", estimator.cv_results_)
